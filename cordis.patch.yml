@@ -1,0 +1,43 @@
+# dsh-workspace-manager bundle.
+#
+# One Loader row registers BOTH halves: the Host plugin below, and — derived by
+# the client-modules scan from this package's `dsh.client` — the browser half
+# `lib/client.js`.
+#
+# Adding this bundle to a profile needs a restart of the serving process; after
+# that a page refresh is enough. With `dsh.profile.patchReload: live` the row
+# also hot-mounts from the profile patch layer.
+#
+# The Host half needs `webServer` (the RPC route) and `connection` (request
+# admission), so it declares them as hard injections. `subprocess` and
+# `workspaceRegistry` are optional and read through `ctx.get`, so a profile
+# without them still loads the panel and reports the missing capability instead
+# of failing the whole mount.
+- insert:
+    - id: workspace-manager
+      name: dsh-workspace-manager
+      config:
+        # Absolute directory new clones land in when neither the repo record
+        # nor the create request names one. Empty = `$DSH_HOME/workspaces`.
+        defaultParentDir: ''
+        # Directory-name template. `{repo}` = repo display name, `{name}` =
+        # the sub-workspace name, `{branch}` = the branch name.
+        directoryTemplate: '{repo}-{name}'
+        # Prefixed to a typed branch name that has no prefix yet.
+        branchPrefix: ''
+        # 0 = full clone; a positive number adds `--depth <n>`.
+        cloneDepth: 0
+        # `--filter=blob:none` partial clone. Ignored when cloneDepth > 0.
+        partialClone: false
+        # `git fetch origin <base>` before creating the work branch. A no-op
+        # right after a fresh clone, kept for re-runs against existing folders.
+        fetchBeforeCreate: true
+        # Archiving also removes the clone directory from disk. Off by default:
+        # archiving must be safe, deleting the folder is a separate intent.
+        deleteDirectoryOnArchive: false
+        # Open a session in the new workspace as soon as the job succeeds.
+        autoOpenSession: false
+        # Maximum simultaneous git jobs.
+        concurrency: 2
+        # Override the storage file. Empty = `$DSH_HOME/storages/dsh-workspace-manager.json`.
+        storageFile: ''
